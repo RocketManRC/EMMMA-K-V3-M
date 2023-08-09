@@ -33,7 +33,7 @@
       "arduino",
       "espidf"
     ],
-    "name": "Adafruit Feather ESP32-S3 No PSRAM",
+    "name": "EMMMA-K-V3",
     "upload": {
       "arduino": {
         "flash_extra_images": [

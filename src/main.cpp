@@ -11,7 +11,7 @@
   Have to use these build flags in platformio.ini to get it to compile:
     build_flags =
      -DUSE_TINYUSB
-     '-DCFG_TUSB_CONFIG_FILE="/Users/rick/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s23include/arduino_tinyusb/include/tusb_config.h"'
+     '-DCFG_TUSB_CONFIG_FILE="$PROJECT_DIR/include/tusb_config.h"'
 
   This comes from this forum:
     https://community.platformio.org/t/tinyusb-definition-errors-on-esp32s3/29382
@@ -20,6 +20,8 @@
   change line 343 in MIDI.hpp to:
 
   const int value = int(fabs(inPitchValue) * double(scale));
+
+  The file is in $PROJECT_DIR/.pio/ESP32-S3-DevKitC/Adafruit TinyUSB Library/
 
 */
 
