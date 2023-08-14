@@ -31,14 +31,21 @@ Video:
 
 https://vimeo.com/831693210/e15a553c1c
 
-# History
+# Features
 
 
-# Installation
+- MIDI - USB, BLE, ESP-Now wireless to a USB MIDI hub and ESP-Now wireless to a Serial MIDI hub.
+- ESP-Now wireless is ultra low latency (approximately 1.5 milliseconds).
+- Touch pins are also low latency and very sensitive.
+
+# System Design
 
 ### Source
 
-# Notes
+# Hardware
+
+
+# Firmware
 
 ### IMPORTANT:
 

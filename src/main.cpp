@@ -1,7 +1,18 @@
-/* This sketch is enumerated as USB MIDI device. 
- * Following library is required
+/* This is enumerated as USB MIDI device. 
+
+ * The ollowing library is required
  * - MIDI Library by Forty Seven Effects
  *   https://github.com/FortySevenEffects/arduino_midi_library
+ * 
+ * There is a bug in thislibrary for MIDI pitch bend where it will only bend up. Need to 
+ * change line 343 in MIDI.hpp to:
+
+ * const int value = int(fabs(inPitchValue) * double(scale));
+
+ * The file is in $PROJECT_DIR/.pio/ESP32-S3-DevKitC/MIDI Library/src
+
+ * The patch should be applied automatically via patchfile.py
+ * which is executed by pio prior to building.
  */
 
 /*
@@ -15,13 +26,6 @@
 
   This comes from this forum:
     https://community.platformio.org/t/tinyusb-definition-errors-on-esp32s3/29382
-
-  There is a bug in the Adafruit library for MIDI pitch bend where it will only bend up. Need to 
-  change line 343 in MIDI.hpp to:
-
-  const int value = int(fabs(inPitchValue) * double(scale));
-
-  The file is in $PROJECT_DIR/.pio/ESP32-S3-DevKitC/Adafruit TinyUSB Library/
 
 */
 
@@ -58,7 +62,7 @@ void displayMode();
 
 // config default values
 // to save the config update one or more of these values and call saveConfig();
-String configInit = "3.1415926535"; // if this is changed config will be initialized (default 3.14159265359)
+String configInit = "3.14159265359"; // if this is changed config will be initialized (default 3.14159265359)
 bool useBluetooth = false;
 int scaleIndex = 3; // default is minor pentatonic
 uint8_t midiChannel = 1;
