@@ -72,11 +72,11 @@ The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 fro
 
 ### Main Menu:
 
-![Photo](images/IMG_0226.jpg) ![Photo](images/IMG_0227.jpg) ![Photo](images/IMG_0228.jpg) ![Photo](images/IMG_0230.jpg)  ![Photo](images/IMG_0237.jpg) ![Photo](images/IMG_0238.jpg)
+![Photo](images/IMG_0226.JPG) ![Photo](images/IMG_0227.JPG) ![Photo](images/IMG_0228.JPG) ![Photo](images/IMG_0230.JPG)  ![Photo](images/IMG_0237.JPG) ![Photo](images/IMG_0238.JPG)
 
 ### Settings:
 
-![Photo](images/IMG_0231.jpg) ![Photo](images/IMG_0232.jpg) ![Photo](images/IMG_0233.jpg) ![Photo](images/IMG_0234.jpg) ![Photo](images/IMG_0235.jpg) ![Photo](images/IMG_0236.jpg)
+![Photo](images/IMG_0231.JPG) ![Photo](images/IMG_0232.JPG) ![Photo](images/IMG_0233.JPG) ![Photo](images/IMG_0234.JPG) ![Photo](images/IMG_0235.JPG) ![Photo](images/IMG_0236.JPG)
 
 
 
