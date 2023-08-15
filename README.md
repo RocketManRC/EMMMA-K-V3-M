@@ -54,7 +54,7 @@ Power for the system is provided by a USB connection to a USB power pack or comp
 
 To minimize point to point wiring PCBs have been designed to carry both the Master and Slave microcontroller boards.
 
-The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress.
+The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress,
 
 ![Photo](images/IMG_0240.jpg)
 
