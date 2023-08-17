@@ -60,7 +60,7 @@ The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 fro
 
 # Building
 
-I've designed a 3D-printed case that has evolved quite a bit since the very first prototype. I've tried to make it as ergonimic as possible in terms of size and balance and spacing between touch pins. The STL files for 3D printing are here [STL](STL-Files/README.md).
+I've designed a 3D-printed case that has evolved quite a bit since the very first prototype. I've tried to make it as ergonimic as possible in terms of size and balance and spacing between touch pins. The STL files for 3D printing are here [STL](STL-Files).
 
 It is not necessary to have the 3D-printed case to try out this system as something made of foam board from the Dollar store  works just fine.
 
