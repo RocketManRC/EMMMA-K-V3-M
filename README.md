@@ -66,7 +66,7 @@ It is not necessary to have the 3D-printed case to try out this system as someth
 
 I do recommend getting the printed circuit boards however as it makes the wiring for the touch pins a lot easier and reproducable although hand wiring will work as well. I had my boards made at JLCPCB. 
 
-The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD/README.md).
+The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD/index.html).
 
 
 # Firmware
