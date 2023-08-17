@@ -54,9 +54,9 @@ Power for the system is provided by a USB connection to a USB power pack or comp
 
 To minimize point to point wiring PCBs have been designed to carry both the Master and Slave microcontroller boards.
 
-The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress,
+The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress.
 
-![Photo](images/IMG_0240.jpg)
+![Photo](images/IMG_0240.JPG)
 
 # Hardware
 
@@ -80,5 +80,23 @@ The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 fro
 
 
 
-# Credits
+# Reference Data
+
+ESP32-S2-DevKitC-1: [https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-s2-devkitc-1.html](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-s2-devkitc-1.html)
+
+ESP32-S3-DevKitC-1: [https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html](https://vi.aliexpress.com/item/1005004586894190.html)
+
+ESP32-S3-DevKitC-1 (N8R2 version) from AliExpress: [https://vi.aliexpress.com/item/1005004586894190.html](https://vi.aliexpress.com/item/1005004586894190.html)
+
+USB-C Breakout Board from AliExpress:
+
+Upholstery Nails (for touch pins): [https://www.amazon.ca/Upholstery-Vintage-Furniture-Upholster-Decorative/dp/B08Q7XC9Y1](https://www.amazon.ca/Upholstery-Vintage-Furniture-Upholster-Decorative/dp/B08Q7XC9Y1)
+
+ABS Glue
+
+Nylon Standoffs
+
+M5 Stack OLED Display
+
+
 
