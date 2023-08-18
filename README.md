@@ -60,21 +60,31 @@ The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 fro
 
 # Building
 
-I've designed a 3D-printed case that has evolved quite a bit since the very first prototype. I've tried to make it as ergonimic as possible in terms of size and balance and spacing between touch pins. The STL files for 3D printing are here [STL](STL-Files).
+I've designed a 3D-printed case that has evolved quite a bit since the very first prototype. I've tried to make it as ergonomic as possible in terms of size and balance and spacing between touch pins. The STL files for 3D printing are here [STL](STL-Files).
 
-It is not necessary to have the 3D-printed case to try out this system as something made of foam board from the Dollar store  works just fine.
+It is not necessary to have the 3D-printed case to try out this system as something made of foam board from the Dollar store works just fine.
 
 I do recommend getting the printed circuit boards however as it makes the wiring for the touch pins a lot easier and reproducable although hand wiring will work as well. I had my boards made at JLCPCB. 
 
-The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD/index.html).
+The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD).
 
 
 # Firmware
 
-### IMPORTANT:
+This is a PlatformIO project using the Arduino Framework. It might be possible to build the firmware using the Arduino IDE however this has not been tested as I don't use the Arduino IDE anymore.
+
+Here is a short YouTube video that shows what is required to build and upload a PlatformIO project [https://www.youtube.com/watch?v=nlE2203Q3XI](https://www.youtube.com/watch?v=nlE2203Q3XI).
+
+### Note: 
+
+There is a quirk with the ESP32-S3 microcontroller that when a project uses USB MIDI the microcontroller must be put in bootloader mode before uploading new firmware otherwise there will be an error. This is not the case if USB MIDI is disabled. In platformio.ini you will see a comment telling how to enable and disable USB MIDI.
+
+# User Guide
 
 
-# User Interface
+
+
+# User Interface Photos
 
 ![Photo](images/EMMMA-K-controls.jpg)
 
@@ -105,6 +115,10 @@ ABS Glue
 Nylon Standoffs
 
 M5 Stack OLED Display
+
+MPU-6050 Breakout Board
+
+
 
 
 
