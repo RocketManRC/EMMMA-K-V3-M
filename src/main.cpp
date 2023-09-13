@@ -1,41 +1,38 @@
-/* This is enumerated as USB MIDI device. 
+/* 
 
- * The ollowing library is required
- * - MIDI Library by Forty Seven Effects
- *   https://github.com/FortySevenEffects/arduino_midi_library
- * 
- * There is a bug in thislibrary for MIDI pitch bend where it will only bend up. Need to 
- * change line 343 in MIDI.hpp to:
+This is the source code for the EMMMA-K-v3.2 Master processor (ESP32-S3).
 
- * const int value = int(fabs(inPitchValue) * double(scale));
+Copyright 2023 RocketManRC
 
- * The file is in $PROJECT_DIR/.pio/ESP32-S3-DevKitC/MIDI Library/src
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
- * The patch should be applied automatically via patchfile.py
- * which is executed by pio prior to building.
- */
+   http://www.apache.org/licenses/LICENSE-2.0
 
-/*
-  Have to remove this file from the project to get it to link:
-    .pio/libdeps/ESP32-S3-DevKitC/Adafruit TinyUSB Library/src/portable/espressif/esp32sx/dcd_esp32sx.c
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  Have to use these build flags in platformio.ini to get it to compile:
-    build_flags =
-     -DUSE_TINYUSB
-     '-DCFG_TUSB_CONFIG_FILE="$PROJECT_DIR/include/tusb_config.h"'
+If you use this code for any purpose please make sure that you
+are not infringing on any third party's intellectual property rights.
 
-  This comes from this forum:
-    https://community.platformio.org/t/tinyusb-definition-errors-on-esp32s3/29382
+To support USB MIDI the following library is required
+    MIDI Library by Forty Seven Effects
+    https://github.com/FortySevenEffects/arduino_midi_library
+  
+ There is a bug in thislibrary for MIDI pitch bend where it will only bend up. Need to 
+ change line 343 in MIDI.hpp to:
 
-*/
+ const int value = int(fabs(inPitchValue) * double(scale));
 
-/*
- Note about Serial0 - the pins for this port are connected to the CP2102
- USB to UART adapter via 0 ohm resistors. According to the datasheet
- for the CP2102 it is supposed to put it's RX and TX pins to high impedence
- if the USB isn't connected to anything. I found that I had to remove the
- resistors to get it to work. Also the system seems to be sending debug info
- to this port so you have to call Serial0.setDebugOutput(false); to stop that.
+ The file is in $PROJECT_DIR/.pio/ESP32-S3-DevKitC/MIDI Library/src
+
+ A patch to fix this should be applied automatically via patchfile.py
+ which is executed by PlatformIO prior to building.
+
 */
 
 #include <Arduino.h>
@@ -60,8 +57,8 @@ void MPU6050Loop();
 void displayRefresh(); // Should displayMode() be used instead???
 void displayMode();
 
-// config default values
-// to save the config update one or more of these values and call saveConfig();
+// Configuration Default Values
+// To change the config update one or more of these values and rebuild.
 String configInit = "3.14159265359"; // if this is changed config will be initialized (default 3.14159265359)
 bool useBluetooth = false;
 int scaleIndex = 3; // default is minor pentatonic
@@ -100,8 +97,9 @@ Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OL
 //uint8_t broadcastAddressMidiHub[] = {0x4C, 0x75, 0x25, 0xA6, 0xCA, 0xF8}; // (Atom Lite ESP-Now to serial MIDI) 
 //uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Any device on this channel...
 uint8_t broadcastAddressRgbMatrix[] = {0x4C, 0x75, 0x25, 0xA6, 0xD6, 0x34};   // The Atom Lite with RGB LED matrix
+//uint8_t broadcastAddressRgbMatrix[] = {0x4C, 0x75, 0x25, 0xA6, 0xCA, 0xF8}; // (Atom Lite ESP-Now to serial MIDI) 
 
-bool binding = false; // this will be set to true if middle not pin touched during startup
+bool binding = false; // this will be set to true if middle touch pin pressed during startup
 
 // I wanted to use the RGB LED to show note colours using Scriabin's Colour Sequence 
 // but the Neopixel update is too slow and it adds random latency into the note generation.
@@ -118,7 +116,6 @@ bool bluetoothConnected = false; // will be set when bluetooth connected
 
 #define RGBLED 0 // set to 1 to show note colours 
 
-//Adafruit_NeoPixel pixels(1, 18, NEO_GRB + NEO_KHZ800); // ESP32-S2 DevKitC
 Adafruit_NeoPixel pixels(1, 48, NEO_GRB + NEO_KHZ800); // ESP32-S3 DevKitC
 
 const int MPU_addr = 0x68; // for the 6050
@@ -137,6 +134,8 @@ BLEMIDI_CREATE_INSTANCE("EMMMA-K", MIDI)
 
 // Create a new instance of the Arduino MIDI Library,
 // and attach usb_midi as the transport.
+// Note that USB MIDI won't be enabled unless the proper
+// compile options are set. See the comments in platformio.ini.
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, USBMIDI);
 
 bool midiOn = false;
@@ -191,6 +190,7 @@ uint8_t superlocrian[] = {1, 2, 1, 2, 2, 2, 2}; // case 17
 
 uint8_t wholehalfdiminished[] = {2, 1, 2, 1, 2, 1, 2, 1}; // case 18
 uint8_t halfwholediminished[] = {1, 2, 1, 2, 1, 2, 1, 2}; // case 19
+uint8_t chromatic[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}; // case 20
 
 const int totalNotePins = 17; // 17 note pins on the keyboard itself 
 const int totalNotes = 24;    // 17 notes plus room for chord notes above the last one including inversions
@@ -215,7 +215,7 @@ String mode = "Scale";
 String scales[] = {"Major", "Minor", "Major Pentatonic", "Minor Pentatonic", 
   "Major Blues", "Minor Blues", "Minor Harmonic", "Minor Melodic", "Minor PO-33", "Dorian",
   "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian",
-  "Lydian Dominished", "Super Locrian", "Whole Half Dim", "Half Whole Dim"};
+  "Lydian Dominished", "Super Locrian", "Whole Half Dim", "Half Whole Dim", "Chromatic"};
 
 int scaleCount = sizeof(scales)/sizeof(scales[0]); 
 
@@ -317,11 +317,6 @@ void displayNotes(bool init)
     //Serial.println(espNowReturnTime);
   } 
 }
-
-//void displayConfigPrompt()
-//{
-//  displayValue(String("Enter Config"), String("->"));
-//}  
 
 void displayAdjacentPinFilt()     
 {
@@ -596,32 +591,11 @@ void changeOctave(bool up)
 
 void displayConfig()
 {
-#if 0
-  if(config == "Adjacent Key Filt")
-    displayAdjacentPinFilt();
-  else if(config == "Dissnt Notes Filt")
-    displayDissonantNotesFilt();
-  else if(config == "MIDI Channel")
-    displayMidiChannel();
-  else if(config == "Exit")
-    displayExitPrompt();
-#endif
-
   (*configDisplayFunctions[config])();
 }
 
 void changeConfig()
 {
-#if 0
-  if(config == "Adjacent Key Filt")
-    config = "Dissnt Notes Filt";
-  else if(config == "Dissnt Notes Filt")
-    config = "MIDI Channel";
-  else if(config == "MIDI Channel")
-    config = "Exit";
-  else if(config == "Exit")
-    config = "Adjacent Key Filt";
-#endif
   if(config >= numberOfConfigItems - 1)
     config = 0;
   else
@@ -666,9 +640,6 @@ void changeMidiChannel(bool up)
 
 void changeMasterVolume(bool up)
 {
-  //Serial.println(up);
-  //Serial.println(masterVolume);
-
   if(up)
   {
     if(masterVolume >= 127)
@@ -769,15 +740,13 @@ void changeKey(int value)
 
 void changeOctave(int value)
 {
-  octave = value; 
+  octave = value - 64; 
 }
 
 int wirelessSend(uint8_t *incomingData, int len)
 {
   if(useBluetooth)
   {
-    //Serial.println("Bluetooth send...");
-
     // The first type of packet is 4, 8 or 12 bytes for notes and chords. The first is the MIDI note value, the second is a flag 
     // for note on or off, the third is the volume and the fourth is the MIDI channel.
     // If it is a 9 byte packet (for a double) it is a pitch bend with the 9th byte being MIDI channel.
@@ -855,19 +824,15 @@ void pitchBend(double bendX)
   {
     if(option1)
     {
-      //Serial.print(bendX);
-      //Serial.print(" ");
-    
       USBMIDI.sendPitchBend(bendX, midiChannel);
-      //if(bendX >= 0)
-      //  USBMIDI.sendControlChange(1, bendX * 127, midiChannel); // test CC, must be 0 - 127
+
       bendActive = true;
     }
     else if(bendActive)
     {
       // Send pitchbend of 0 once when option1 removed
       USBMIDI.sendPitchBend(0.0, midiChannel);
-      //USBMIDI.sendControlChange(1, 0, midiChannel); // test CC
+
       bendActive = false;
     }
   }
@@ -875,8 +840,6 @@ void pitchBend(double bendX)
   {
     if(option1)
     {
-      //Serial.printf("%f \n", bendX);
-
       uint8_t *p =  (uint8_t *)&bendX; 
       uint8_t msgPitchbend[9];
 
@@ -917,9 +880,6 @@ void modwheel(uint8_t modX)
   {
     if(option1)
     {
-      //Serial.print(bendX);
-      //Serial.print(" ");
-    
       if(modX >= 0)
       {
         USBMIDI.sendControlChange(ccForModwheel, modX, midiChannel); // CC, must be 0 - 127
@@ -941,14 +901,10 @@ void modwheel(uint8_t modX)
 
     if(option1)
     {
-      //Serial.printf("%f \n", bendX);
-
       uint8_t mod = modX;
 
       msgModwheel[0] = ccForModwheel;
-
       msgModwheel[1] = mod;
-
       msgModwheel[2] = midiChannel;  // MIDI channel
 
       espNowMicrosAtSend = micros();
@@ -973,14 +929,11 @@ void modwheel(uint8_t modX)
 
 void setVolume(uint8_t data1)
 {
-  //usbMIDI.sendAfterTouch(data1, 1);
   masterVolume = data1;
 }
 
 void handleChangeRequest(uint8_t type, uint8_t data1, uint8_t data2)
 {
-  //Serial.printf("%d %d %d\n", type, data1, data2);
-
   if(type == 176 && data1 == 68) // is this control change #68?
   {
     // if so data2 contains the scale: 1 to number of scales 
@@ -990,98 +943,83 @@ void handleChangeRequest(uint8_t type, uint8_t data1, uint8_t data2)
     {
       case 1:
       scaleToMidiValues(majorscale, sizeof(majorscale));
-      //Serial3.printf("Change scale to: %s\n", "majorscale");
       break;
         
       case 2:
       scaleToMidiValues(minorscale, sizeof(minorscale));
-      //Serial3.printf("Change scale to: %s\n", "minorscale");
       break;
         
       case 3:
       scaleToMidiValues(pentascale, sizeof(pentascale));
-      //Serial3.printf("Change scale to: %s\n", "pentascale");
       break;
         
       case 4:
       scaleToMidiValues(minorpentascale, sizeof(minorpentascale));
-      //Serial3.printf("Change scale to: %s\n", "minorpentascale");
       break;
         
       case 5:
       scaleToMidiValues(majorbluesscale, sizeof(majorbluesscale));
-      //Serial3.printf("Change scale to: %s\n", "minorbluesscale");
       break;        
 
       case 6:
       scaleToMidiValues(minorbluesscale, sizeof(minorbluesscale));
-      //Serial3.printf("Change scale to: %s\n", "majorbluesscale");
       break;        
 
       case 7:
       scaleToMidiValues(minorharmonic, sizeof(minorharmonic));
-      //Serial3.printf("Change scale to: %s\n", "minorharmonic");
       break;        
 
       case 8:
       scaleToMidiValues(minormelodic, sizeof(minormelodic));
-      //Serial3.printf("Change scale to: %s\n", "minormelodic");
       break;        
 
       case 9:
       scaleToMidiValues(minorpo33, sizeof(minorpo33));
-      //Serial3.printf("Change scale to: %s\n", "minorpo33");
       break;        
 
       case 10:
       scaleToMidiValues(dorian, sizeof(dorian));
-      //Serial3.printf("Change scale to: %s\n", "dorian");
       break;        
 
       case 11:
       scaleToMidiValues(phrygian, sizeof(phrygian));
-      //Serial3.printf("Change scale to: %s\n", "phrygian");
       break;        
 
       case 12:
       scaleToMidiValues(lydian, sizeof(lydian));
-      //Serial3.printf("Change scale to: %s\n", "lydian");
       break;        
 
       case 13:
       scaleToMidiValues(mixolydian, sizeof(mixolydian));
-      //Serial3.printf("Change scale to: %s\n", "mixolydian");
       break;        
 
       case 14:
       scaleToMidiValues(aeolian, sizeof(aeolian));
-      //Serial3.printf("Change scale to: %s\n", "aeolian");
       break;        
 
       case 15:
       scaleToMidiValues(locrian, sizeof(locrian));
-      //Serial3.printf("Change scale to: %s\n", "locrian");
       break;        
 
       case 16:
       scaleToMidiValues(lydiandomiant, sizeof(lydiandomiant));
-      //Serial3.printf("Change scale to: %s\n", "lydiandomiant");
       break;        
 
       case 17:
       scaleToMidiValues(superlocrian, sizeof(superlocrian));
-      //Serial3.printf("Change scale to: %s\n", "superlocrian");
       break;        
 
       case 18:
       scaleToMidiValues(wholehalfdiminished, sizeof(wholehalfdiminished));
-      //Serial3.printf("Change scale to: %s\n", "wholehalfdiminished");
       break;        
 
       case 19:
       scaleToMidiValues(halfwholediminished, sizeof(halfwholediminished));
-      //Serial3.printf("Change scale to: %s\n", "halfwholediminished");
       break;        
+
+      case 20:
+      scaleToMidiValues(chromatic, sizeof(chromatic));
+     break;        
 
       default:
         break;  
@@ -1099,16 +1037,6 @@ void handleChangeRequest(uint8_t type, uint8_t data1, uint8_t data2)
   {
     changeOctave(data2); // If so play change the octaveo
   }
-#if 0 // Don't allow external pitch bend or volume change for now
-  else if(type == 224) // is this a pitchbend message?
-  {
-    pitchBend(data1, data2); // If so do a pitch bend
-  }
-  else if(type == 208) // is this an aftertouch message?
-  {
-    setVolume(data1);
-  }    
-#endif
 }
 
 // This is the callback for ESP-Now success/failure
@@ -1116,10 +1044,6 @@ void data_sent(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
   uint32_t m = micros();
   espNowReturnTime = m - espNowMicrosAtSend; // this is how many us it takes to get back the Esp-Now reply
-  //Serial.println(m - espNowMicrosAtSend);
-
-  //Serial.print("\r\nStatus of Last Message Sent:\t");
-  //Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 
   if(status) // did delivery fail?
   {
@@ -1147,18 +1071,7 @@ void data_sent(const uint8_t *mac_addr, esp_now_send_status_t status)
 
 void data_received(const uint8_t *mac_addr, const uint8_t *data, int data_len)
 {
-  //for(int i = 0; i < data_len; i++)
-  //{
-    //Serial.print(data[i]);
-    //Serial.print(" ");
-  //}
-
-  //Serial.println();
-
-  //Serial.printf("%X %X %X %X %X %X\n", mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-
   if(binding) // are we waiting for the hub to bind?
-  //if(memcmp(mac_addr, broadcastAddressMidiHub.c_str(), 6)) // are we potentially getting a broadcast from a new hub?
   {
     // check if there is a valid id in the data
     const uint8_t id[] = {'E', 'M', 'M', 'M', 'A', '-', 'K'};
@@ -1178,80 +1091,6 @@ void data_received(const uint8_t *mac_addr, const uint8_t *data, int data_len)
 
   displayRefresh();
 }
-
-#if 0 // choose I2C channel, 1 = Wire, 0 = Wire1
-void init6050()
-{
-  Wire.setPins(35, 36); // SDA, SCL
-  Wire.begin(); 
-  Wire.beginTransmission(MPU_addr);
-  Wire.write(0x6B);
-  Wire.write(0);
-  Wire.endTransmission(true);
-}
-
-void read6050(double *x, double *y, double *z)
-{
-  int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
-  
-  int minVal=265;
-  int maxVal=402;
-
-  Wire.beginTransmission(MPU_addr);
-  Wire.write(0x3B);
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU_addr, 14, (int)true);
-
-  AcX = Wire.read()<<8|Wire.read();
-  AcY = Wire.read()<<8|Wire.read();
-  AcZ = Wire.read()<<8|Wire.read();
-
-  int xAng = map(AcX,minVal,maxVal,-90,90);
-  int yAng = map(AcY,minVal,maxVal,-90,90);
-  int zAng = map(AcZ,minVal,maxVal,-90,90);
-  
-  *x = RAD_TO_DEG * (atan2(-yAng, -zAng)+PI);
-  *y = RAD_TO_DEG * (atan2(-xAng, -zAng)+PI);
-  *z = RAD_TO_DEG * (atan2(-yAng, -xAng)+PI);  
-}
-#endif
-
-#if 0
-void init6050()
-{
-  Wire1.setPins(41, 42); // SDA, SCL
-  Wire1.begin(); 
-  Wire1.beginTransmission(MPU_addr);
-  Wire1.write(0x6B);
-  Wire1.write(0);
-  Wire1.endTransmission(true);
-}
-
-void read6050(double *x, double *y, double *z)
-{
-  int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
-  
-  int minVal=265;
-  int maxVal=402;
-
-  Wire1.beginTransmission(MPU_addr);
-  Wire1.write(0x3B);
-  Wire1.endTransmission(false);
-  Wire1.requestFrom(MPU_addr, 14, (int)true);
-
-  AcX = Wire1.read()<<8|Wire1.read();
-  AcY = Wire1.read()<<8|Wire1.read();
-  AcZ = Wire1.read()<<8|Wire1.read();
-
-  int xAng = map(AcX,minVal,maxVal,-90,90);
-  int yAng = map(AcY,minVal,maxVal,-90,90);
-  int zAng = map(AcZ,minVal,maxVal,-90,90);
-  
-  *x = RAD_TO_DEG * (atan2(-yAng, -zAng)+PI);
-  *y = RAD_TO_DEG * (atan2(-xAng, -zAng)+PI);
-  *z = RAD_TO_DEG * (atan2(-yAng, -xAng)+PI);  
-}
-#endif
 
 // LittleFS calls for config
 void writeFile(String filename, String message)
@@ -1411,8 +1250,8 @@ void setup()
 {
   Serial.begin(115200);
 
-  //delay(5000);
-  //Serial.println("Hello!");
+  delay(5000);
+  Serial.println("Hello!");
 
 #if 1
   if(!LittleFS.begin(true))
@@ -1422,32 +1261,15 @@ void setup()
   }
   else
   {
-    //if(saveConfig()) 
-    //{
-    //  Serial.println("setup -> Config file saved");
-    //}  
-
     readConfig(); 
-
-    //Serial.println("configInit = " + String(configInit));
-    //Serial.println("useBluetooth = " + String(useBluetooth));
   }
 #endif
 
   // need to do this to force the scale to be loaded in case it isn't major scale...
   handleChangeRequest(176, 68, scaleIndex + 1);
 
-  // It seems that for UART1 TX = 39 and RX = 38 and I wasn't able to change them
-  // The pin definitions are in pins_arduino.h and of course I am using a modified
-  // board definition for the adafruit_feather_esp32s2 so I say good enough!
   SERIALSLAVE.begin(2000000); 
-  //SERIALSLAVE.begin(115200); 
 
-  //SERIALEXTRA.begin(115200); // You have to remove the 0ohm resistors to the CP2102 to get the port to work.
-  
-  //Serial0.setDebugOutput(false); // Without this system error messages seem to get sent to this port!
-
-#if 1 
   // Display initialization
   //Serial.println("Initializing display");
   Wire.setPins(35, 36); // SDA, SDL
@@ -1474,7 +1296,6 @@ void setup()
   display.println(F(" v3.2.0"));
 
   display.display();
-#endif
 
   //Serial.println("Initializing touchpad");
   touch_pad_init();
@@ -1509,15 +1330,13 @@ void setup()
       break;
   }
 
-  if(elapsedMs < 2000)  // comment off this line and the line below to send USB MIDI as well (for wirless latency testing)
+  if(elapsedMs < 2000)  // comment off this line and the line below to send USB MIDI as well (for wireless latency testing)
     midiOn = true;
 
   Serial.print("Time to init USB MIDI: ");
   Serial.println(elapsedMs);
 
   delay(250); // need this or you get a squeal to start that doesn't go away!
-#else // no midi
-  midiOn = false;
 #endif
 
   touch_pad_set_voltage(TOUCH_HVOLT_2V7, TOUCH_LVOLT_0V5, TOUCH_HVOLT_ATTEN_1V);
@@ -1548,10 +1367,6 @@ void setup()
       }
   }
   Serial.println();
-
-  //scaleToMidiValues(minorbluesscale, sizeof(minorbluesscale));
-  //scaleToMidiValues(majorscale, sizeof(majorscale));
-  //Serial.println("After scaleToMidiValues()");
 
   pixels.setBrightness(10);
   pixels.begin(); // INITIALIZE NeoPixel (REQUIRED)
@@ -1641,13 +1456,9 @@ void setup()
 
   display.clearDisplay();
   display.setTextSize(1);  
-  //display.setCursor(10,25);             
-  //display.println(F("Ready..."));
-  //display.display();
-  //Serial.println("displayScale()");
+
   mode = "Note";
   displayNotes(true);
-  //Serial.println("after displayScale()");
 }
 
 // A note will be dissonant if there is a note on that is 1 or 2 semitones
@@ -1838,7 +1649,7 @@ void sendChordEspNow3(uint8_t *chordData)
   }
 }
 
-// Note that notes for chords are sent in reverse order incase the instrument can't handle chords (only the last note sent will play)
+// Note that notes for chords are sent in reverse order in case the instrument can't handle chords (only the last note sent will play)
 void sendChordOn(uint8_t idx, uint8_t ofs)
 {
   if(scales[scaleIndex] == "Major" || scales[scaleIndex] == "Minor")
@@ -2587,14 +2398,29 @@ void processPitchBend()
 
 void processModwheel()
 {
+  static bool offsetCaptured = false;
+  static double rollOffset = 0.0;
+
   double roll = ypr[1] * 180/M_PI;  // ...and roll
+
+  if(option1 && !offsetCaptured)
+  {
+    offsetCaptured = true;
+    rollOffset = roll;
+  }
+  else if(!option1)
+  {
+    offsetCaptured = false;
+  }
+
+  // calculate the desired 0 position 
+  roll -= rollOffset; 
+
   int iRoll = roll / 25.0 * 64; 
   if(iRoll < -64)
     iRoll = -64;
   else if (iRoll > 63)
     iRoll = 63;
-
-  //uint8_t mod = map(iRoll, -64, 63, 1, 127);
 
   uint8_t mod;
   if(iRoll < 0)
@@ -2604,7 +2430,7 @@ void processModwheel()
 
   if(mod > 127)
     mod = 127;
-  
+
   modwheel(mod);
 }
 
@@ -2614,9 +2440,6 @@ void loop()
 
   if(SERIALSLAVE.availableForWrite())
     SERIALSLAVE.write(0xA5);
-
-  //if(SERIALEXTRA.availableForWrite())
-  //  SERIALEXTRA.write(0xA5);
 
     // read and process the right option pins
 
@@ -2649,9 +2472,6 @@ void loop()
 
     if(touch_value > benchmark[i] + (0.3 * benchmark[i]) && !adjacentPinOn(i)  && !dissonantNoteOn(i * 2))
     {
-      //Serial.print(touch_value);
-      //Serial.print(" ");
-
       if(dissonantNoteOn(i * 2))
       {
         //Serial.println("Dissonant note is already on!");
@@ -2877,49 +2697,10 @@ void loop()
             changeOctave(true);
             displayOctave();
           }
-          //else if(mode == "Config")
-          //{
-          //  optionsMode = false;
-
-          //  displayConfig();
-          //}
         }
         else
         {
           // In config mode now
-#if 0
-          //Serial.println("config mode");
-          if(config == "Adjacent Key Filt")
-          {
-            //Serial.println("change adjacent key filter");
-            changeAdjacentPinFilt();
-
-            //Serial.println("display adjacent key filter");
-            displayAdjacentPinFilt();
-          }
-          else if(config == "Dissnt Notes Filt")
-          {
-            changeDissonantNotesFilt();
-
-            displayDissonantNotesFilt();
-          }
-          else if(config == "MIDI Channel")
-          {
-            changeMidiChannel(true);
-
-            displayMidiChannel();
-          }
-          else if(config == "Exit")
-          {
-            // save config here
-            saveConfig();
-
-            // exit
-            optionsMode = true;
-
-            displayMode();
-          }
-#endif
           (*configChangeFunctions[config])(true);
 
           if(!optionsMode)  // Note that exit will take us out of config mode so in that case don't displayConfig()
@@ -2953,28 +2734,6 @@ void loop()
         {
           // In config mode now
           //Serial.println("config mode");
-#if 0
-          if(config == "Adjacent Key Filt")
-          {
-            //Serial.println("change adjacent key filter");
-            changeAdjacentPinFilt();
-
-            //Serial.println("display adjacent key filter");
-            displayAdjacentPinFilt();
-          }
-          else if(config == "Dissnt Notes Filt")
-          {
-            changeDissonantNotesFilt();
-
-            displayDissonantNotesFilt();
-          }
-          else if(config == "MIDI Channel")
-          {
-            changeMidiChannel(false);
-
-            displayMidiChannel();
-          }
-#endif
           (*configChangeFunctions[config])(false);
 
           if(!optionsMode)  // Note that exit will take us out of config mode so in that case don't displayConfig()
@@ -3065,21 +2824,6 @@ void loop()
     }
   } 
 
-  //if(SERIALEXTRA.available())
-  //{
-  //  char c;
-      
-  //  SERIALEXTRA.read(&c, 1);
-
-  //  if(c != 0xA5)
-  //  {
-      //Serial.print(c);
-      //Serial.print(" ");
-  //  }
-    //else
-    //  Serial.print('.');
-  //}
-
 #if RGBLED
   if(allNotesOff())
   {
@@ -3105,7 +2849,16 @@ void loop()
   }
   else if(useBluetooth && bluetoothConnected)
   {
-    MIDI.read();
+    if(MIDI.read())
+    {
+      uint8_t type = MIDI.getType();
+      uint8_t data1 = MIDI.getData1();
+      uint8_t data2 = MIDI.getData2();
+
+      handleChangeRequest(type, data1, data2);
+
+      displayRefresh();
+    }
   }
 }
 
@@ -3265,33 +3018,13 @@ void MPU6050Setup()
         Fastwire::setup(400, true);
     #endif
 
-    // initialize serial communication
-    // (115200 chosen because it is required for Teapot Demo output, but it's
-    // really up to you depending on your project)
-    //Serial.begin(115200);
-    //delay(5000);
-    //while (!Serial); // wait for Leonardo enumeration, others continue immediately
-
-    // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
-    // Pro Mini running at 3.3V, cannot handle this baud rate reliably due to
-    // the baud timing being too misaligned with processor ticks. You must use
-    // 38400 or slower in these cases, or use some kind of external separate
-    // crystal solution for the UART timer.
-
     // initialize device
     Serial.println(F("Initializing I2C devices..."));
     mpu.initialize();
-    //pinMode(INTERRUPT_PIN, INPUT);
 
     // verify connection
     Serial.println(F("Testing device connections..."));
     Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-
-    // wait for ready
-    //Serial.println(F("\nSend any character to begin DMP programming and demo: "));
-    //while (Serial.available() && Serial.read()); // empty buffer
-    //while (!Serial.available());                 // wait for data
-    //while (Serial.available() && Serial.read()); // empty buffer again
 
     // load and configure the DMP
     Serial.println(F("Initializing DMP..."));
