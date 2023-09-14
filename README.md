@@ -63,7 +63,7 @@ To minimize point to point wiring PCBs have been designed to carry both the Mast
 
 The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress.
 
-The code for the slave processor is located here:
+The code for the slave processor (inspite of what Github says in the repository list and pins) is located here:
 
 [https://github.com/RocketManRC/EMMMA-K-V3-S](https://github.com/RocketManRC/EMMMA-K-V3-S)
 
