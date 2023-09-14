@@ -83,7 +83,27 @@ I do recommend getting the printed circuit boards however as it makes the wiring
 
 The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD).
 
-[TODO: add a wiring table for the hand wiring]
+### Wiring:
+
+| Master MCU | Slave MCU |
+| ---------- | --------- |
+| GND        | GND       |
+| 38         | TX        |
+| 39         | RX        |
+
+| Master MCU | MPU6050 |
+| ---------- | ------- |
+| GND        | GND     |
+| 41         | SDA     |
+| 42         | SCL     |
+| 3.3V       | VCC     |
+
+| Master MCU | OLED    |
+| ---------- | ------- |
+| GND        | GND     |
+| 5V         | 5V      |
+| 36         | SCL     |
+| 35         | SDA     |
 
 
 # Firmware
