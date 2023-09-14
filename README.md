@@ -63,6 +63,14 @@ To minimize point to point wiring PCBs have been designed to carry both the Mast
 
 The microcontroller boards are the ESP32-S3-DevKitC-1 and ESP32-S2-DevKitC-1 from Espressif and are available from all the major component suppliers. Alternatively there are versions of the S3 dev board available from AliExpress.
 
+The code for the slave processor is located here:
+
+[https://github.com/RocketManRC/EMMMA-K-V3-S](https://github.com/RocketManRC/EMMMA-K-V3-S)
+
+The code for the wireless hub is located here:
+
+[https://github.com/RocketManRC/EMMMA-K-V3-W](https://github.com/RocketManRC/EMMMA-K-V3-S)
+
 ![Photo](images/IMG_0240.JPG)
 
 # Building
@@ -74,6 +82,8 @@ It is not necessary to have the 3D-printed case to try out this system as someth
 I do recommend getting the printed circuit boards however as it makes the wiring for the touch pins a lot easier and reproducable although hand wiring will work as well. I had my boards made at JLCPCB. 
 
 The KiCAD 6 design files and the gerbers are here [PCBs](KiCAD).
+
+[TODO: add a wiring table for the hand wiring]
 
 
 # Firmware
@@ -109,21 +119,23 @@ There is a quirk with the ESP32-S3 microcontroller that when a project uses USB 
 
 ESP32-S2-DevKitC-1: [https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-s2-devkitc-1.html](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/hw-reference/esp32s2/user-guide-s2-devkitc-1.html)
 
-ESP32-S3-DevKitC-1: [https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html](https://vi.aliexpress.com/item/1005004586894190.html)
+ESP32-S3-DevKitC-1: [https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html)
 
 ESP32-S3-DevKitC-1 (N8R2 version) from AliExpress: [https://vi.aliexpress.com/item/1005004586894190.html](https://vi.aliexpress.com/item/1005004586894190.html)
 
-USB-C Breakout Board from AliExpress:
+USB-C Breakout Board from AliExpress: [https://vi.aliexpress.com/item/1005001337982060.html](https://vi.aliexpress.com/item/1005001337982060.html) Make sure to choose the female connector although having both may come in handy.
+
+Schottky Diode: [https://www.digikey.ca/en/products/detail/panjit-international-inc/SS1040L-R1-00001/14660138](https://www.digikey.ca/en/products/detail/panjit-international-inc/SS1040L-R1-00001/14660138)
 
 Upholstery Nails (for touch pins): [https://www.amazon.ca/Upholstery-Vintage-Furniture-Upholster-Decorative/dp/B08Q7XC9Y1](https://www.amazon.ca/Upholstery-Vintage-Furniture-Upholster-Decorative/dp/B08Q7XC9Y1)
 
-ABS Glue
+ABS Glue: [https://a.co/d/97ip9cB](https://a.co/d/97ip9cB) I purchased this locally at the hardware store.
 
-Nylon Standoffs
+Nylon Standoffs and screws: [https://a.co/d/cQluBSF](https://a.co/d/cQluBSF)
 
-M5 Stack OLED Display
+M5 Stack OLED Display: [https://vi.aliexpress.com/item/1005003297480376.html](https://vi.aliexpress.com/item/1005003297480376.html) I bought mine from DigiKey for less but at the moment (September 14, 2023) they only have 2 left in stock
 
-MPU-6050 Breakout Board
+MPU-6050 Breakout Board: [https://a.co/d/5xTt3AK](https://a.co/d/5xTt3AK)
 
 
 
