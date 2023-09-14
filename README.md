@@ -1,11 +1,11 @@
 # EMMMA-K-V3
 
 # Introduction
-The EMMMA-K is a MIDI controller for electronic music that uses touch pins for note keys and user interface. A tilt sensor is used to generate MIDI commands for effects such as pitch bend and mod wheel.
+The EMMMA-K is a MIDI controller for electronic music that uses touch pins for note keys and user interface. A motion sensor is used to generate MIDI commands for effects such as pitch bend and mod wheel.
 
 ![Photo](images/EMMMA-K-V3.jpg)
 
-The layout of the touch pins for note keys is modelled after the Kalimba (a.k.a. thumb piano) which is a modernized version of the MBira, an ancient African plucked instrument.
+The layout of the touch pins for note keys is modeled after the Kalimba (a.k.a. thumb piano) which is a modernized version of the MBira, an ancient African plucked string instrument.
 
 The history and evolution of the MBira and Kalimba is given on Wikipedia here:
 
@@ -25,10 +25,15 @@ As crude as that first prototype was it actually performed pretty well and so wh
 
 This version supported additional music scales in addition to the Kalimba's C Major scale and a user interface was provided to change scale, key and octave.
 
-Fast forward to October 2022... After working on a number of other unrelated projects I started researching what microcontrollers could be used to replace the TeensyLCs I was using before that were no longer available due to the dreaded world-wide semiconductor shortage. The primary requirement was touch pin performance meaning good sensitivity and low latency. I discovered that the new ESP32-S2 and ESP32-S3 from Espressif are excellent for this purpose and so the EMMMA-K-V3 was born.
+Fast forward to October 2022... After working on a number of other unrelated projects I started researching what microcontrollers could be used to replace the TeensyLCs I was using that were no longer available due to the dreaded world-wide semiconductor shortage. The primary requirement was touch pin performance meaning good sensitivity and low latency. I discovered that the new ESP32-S2 and ESP32-S3 from Espressif are excellent for this purpose and so the EMMMA-K-V3 was born.
 
-**Video:**
-[https://vimeo.com/831693210/e15a553c1c](https://vimeo.com/831693210/e15a553c1c)
+**Videos:**
+
+[https://vimeo.com/858654116](https://vimeo.com/858654116) Introduction
+
+[https://vimeo.com/858421865](https://vimeo.com/858421865) Overview of Features
+
+[https://vimeo.com/858731197](https://vimeo.com/858731197) Under the Hood
 
 # Features
 
@@ -46,9 +51,11 @@ Fast forward to October 2022... After working on a number of other unrelated pro
 
 This is a dual microcontroller master/slave system with a ESP32-S3 used for the master and a ESP32-S2 (or S3) for the slave. Each microcontroller has 14 touch pins and the ESP32-S3 is required for the master to support wireless over BLE (the ESP32-S2 does not). The microcontrollers exchange pin data via a UART connection with the master polling the slave for synchronous communications. The baud rate is set to 2000000 baud to eliminate any noticable latency.
 
-The tilt sensor is a breakout board with a MPU-6050 IMU and is connected to the master via I2C. The board provides three absolute angle measurments (roll, pitch and yaw) using the internal processing of the MPU-6050. The roll axis is used for the mod wheel and the pitch axis is used for pitch bend.
+The motion sensor is a breakout board with a MPU-6050 IMU and is connected to the master via I2C. The board provides three absolute angle measurments (roll, pitch and yaw) using the internal processing of the MPU-6050. The roll axis is used for the mod wheel and the pitch axis is used for pitch bend. The yaw axis is not currently used but could be used for some other purpose.
 
-A OLED display of resolution of 128 by 64 pixels is used for the user interface along with three dedicated touch pins.
+The use of the motion sensor to generate effects is enabled by touching and holding the option pin on the right hand side of the enclosure. This does not require a note to be played which has the advantage of allowing the EMMMA-K to be used for effects along with another MIDI controller. It also has the advantage that the effects will still be applied to a note with sustain even if the noteoff MIDI command has been issued. When the option pin is touched centre angles are calculated for roll and pitch and then the effects are calculated relative to that those. The logic can be changed so that absolute angles are used which works just as well and is a matter of personal preference. Generation of the effects uses a concept from model aviation called "expo". This means that the change in value of the effects are reduced around around the centre position giving a much smoother response overall.
+
+A OLED display of resolution of 128 by 64 pixels is used for the user interface along with three dedicated touch pins. This display is on a seperate I2C port.
 
 Power for the system is provided by a USB connection to a USB power pack or computer USB port.
 

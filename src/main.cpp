@@ -19,6 +19,22 @@ limitations under the License.
 If you use this code for any purpose please make sure that you
 are not infringing on any third party's intellectual property rights.
 
+The following opensource libraries are used by this software and are much appreciated:
+
+Adafruit BusIO - MIT License
+Adafruit GFX Library - BSD License
+Adafruit NeoPixel - GLPL License
+Adafruit SH110X - BSD License
+Adafruit SPI Flash - MIT License
+Adafruit TinyUSB Library - MIT License
+ArduinoBLE - GLPL License
+ArduinoJson - MIT License
+BLE-MIDI - MIT License
+I2Cdevlib - MIT License
+MIDI Library - MIT License
+NimBLE-Arduino - Apache License
+SdFat - Adafruit Fork - MIT License
+
 To support USB MIDI the following library is required
     MIDI Library by Forty Seven Effects
     https://github.com/FortySevenEffects/arduino_midi_library
@@ -81,23 +97,12 @@ float ypr[3];  // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vect
 #define OLED_RESET -1     // can set an oled reset pin if desired
 Adafruit_SH1107 display = Adafruit_SH1107(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET, 1000000, 100000);
 
-// ************ The following define should normally be 1! ************
-#define USEMIDI 1 // set to 0 to force remote via ESP-Now
+// ************ The following define should normally be 1 for USB MIDI. Also must set the compile flag in platformio.ini ************
+#define USEMIDI 0 // set to 0 to force remote via wireless (ESP-Now or BLE)
 
 #define SERIALSLAVE Serial1
-//#define SERIALEXTRA Serial0
 
-//uint8_t broadcastAddressMidiHub[] = {0xDC, 0x54, 0x75, 0xC8, 0xED, 0xFC}; // (AtomS3Lite#3) 
-//uint8_t broadcastAddressMidiHub[] = {0xB8, 0xD6, 0x1A, 0x5A, 0xC4, 0xFC}; // (Simple Synth) 
-//uint8_t broadcastAddressMidiHub[] = {0x84, 0xF7, 0x03, 0xDC, 0xF6, 0xF8}; // (Green rocket window) MAC address of the "midi hub" for ESP-Now comms
-//uint8_t broadcastAddressMidiHub[] = {0x84, 0xF7, 0x03, 0xDD, 0x36, 0x7A}; // (Blue rocket window) 84:F7:03:DD:36:7A
-//uint8_t broadcastAddressMidiHub[] = {0x84, 0xF7, 0x03, 0xDD, 0x36, 0x54}; // (mine) 84:F7:03:DD:36:54
-//uint8_t broadcastAddressMidiHub[] = {0xDC, 0x54, 0x75, 0xC8, 0xFA, 0x58}; // (AtomS3Lite#1) 
-//uint8_t broadcastAddressMidiHub[] = {0xDC, 0x54, 0x75, 0xC8, 0x45, 0x6C}; // (AtomS3Lite#2) 
-//uint8_t broadcastAddressMidiHub[] = {0x4C, 0x75, 0x25, 0xA6, 0xCA, 0xF8}; // (Atom Lite ESP-Now to serial MIDI) 
-//uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Any device on this channel...
-uint8_t broadcastAddressRgbMatrix[] = {0x4C, 0x75, 0x25, 0xA6, 0xD6, 0x34};   // The Atom Lite with RGB LED matrix
-//uint8_t broadcastAddressRgbMatrix[] = {0x4C, 0x75, 0x25, 0xA6, 0xCA, 0xF8}; // (Atom Lite ESP-Now to serial MIDI) 
+uint8_t broadcastAddressRgbMatrix[] = {0x4C, 0x75, 0x25, 0xA6, 0xD6, 0x34};   // Experiment with the Atom Lite and RGB LED matrix
 
 bool binding = false; // this will be set to true if middle touch pin pressed during startup
 
@@ -1250,9 +1255,6 @@ void setup()
 {
   Serial.begin(115200);
 
-  delay(5000);
-  Serial.println("Hello!");
-
 #if 1
   if(!LittleFS.begin(true))
   {
@@ -1271,17 +1273,12 @@ void setup()
   SERIALSLAVE.begin(2000000); 
 
   // Display initialization
-  //Serial.println("Initializing display");
   Wire.setPins(35, 36); // SDA, SDL
 
-  //delay(50); // wait for the OLED to power up
-
-  // Show image buffer on the display hardware.
-  // Since the buffer is intialized with an Adafruit splashscreen
-  // internally, this will display the splashscreen.
+  delay(50); // wait for the OLED to power up
 
   display.begin(0x3C, true); // Address 0x3D default
- //display.setContrast (0); // dim display
+  display.setContrast(32); // dim display a bit (range is 0 to 127)
 
   display.setRotation(1);
  
@@ -1300,9 +1297,6 @@ void setup()
   //Serial.println("Initializing touchpad");
   touch_pad_init();
 
-  //Serial.println("Initializing 6050 IMU");
-  //init6050();
-  //Serial.println("After initializing 6050 IMU");
   MPU6050Setup();
 
   // Initialize MIDI if enabled
@@ -1336,7 +1330,7 @@ void setup()
   Serial.print("Time to init USB MIDI: ");
   Serial.println(elapsedMs);
 
-  delay(250); // need this or you get a squeal to start that doesn't go away!
+  delay(250); // need this or you may get a squeal to start that doesn't go away!
 #endif
 
   touch_pad_set_voltage(TOUCH_HVOLT_2V7, TOUCH_LVOLT_0V5, TOUCH_HVOLT_ATTEN_1V);
@@ -2892,81 +2886,14 @@ void handleNoteOff(byte channel, byte pitch, byte velocity)
 #include "I2Cdev.h"
 
 #include "MPU6050_6Axis_MotionApps20.h"
-//#include "MPU6050.h" // not necessary if using MotionApps include file
 
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
 
-// class default I2C address is 0x68
-// specific I2C addresses may be passed as a parameter here
-// AD0 low = 0x68 (default for SparkFun breakout and InvenSense evaluation board)
-// AD0 high = 0x69
 MPU6050 mpu(0x68, &Wire1);
-//MPU6050 mpu(0x69); // <-- use for AD0 high
 
-/* =========================================================================
-   NOTE: In addition to connection 3.3v, GND, SDA, and SCL, this sketch
-   depends on the MPU-6050's INT pin being connected to the Arduino's
-   external interrupt #0 pin. On the Arduino Uno and Mega 2560, this is
-   digital I/O pin 2.
- * ========================================================================= */
-
-/* =========================================================================
-   NOTE: Arduino v1.0.1 with the Leonardo board generates a compile error
-   when using Serial.write(buf, len). The Teapot output uses this method.
-   The solution requires a modification to the Arduino USBAPI.h file, which
-   is fortunately simple, but annoying. This will be fixed in the next IDE
-   release. For more info, see these links:
-
-   http://arduino.cc/forum/index.php/topic,109987.0.html
-   http://code.google.com/p/arduino/issues/detail?id=958
- * ========================================================================= */
-
-
-
-// uncomment "OUTPUT_READABLE_QUATERNION" if you want to see the actual
-// quaternion components in a [w, x, y, z] format (not best for parsing
-// on a remote host such as Processing or something though)
-//#define OUTPUT_READABLE_QUATERNION
-
-// uncomment "OUTPUT_READABLE_EULER" if you want to see Euler angles
-// (in degrees) calculated from the quaternions coming from the FIFO.
-// Note that Euler angles suffer from gimbal lock (for more info, see
-// http://en.wikipedia.org/wiki/Gimbal_lock)
-//#define OUTPUT_READABLE_EULER
-
-// uncomment "OUTPUT_READABLE_YAWPITCHROLL" if you want to see the yaw/
-// pitch/roll angles (in degrees) calculated from the quaternions coming
-// from the FIFO. Note this also requires gravity vector calculations.
-// Also note that yaw/pitch/roll angles suffer from gimbal lock (for
-// more info, see: http://en.wikipedia.org/wiki/Gimbal_lock)
 #define OUTPUT_READABLE_YAWPITCHROLL
-
-// uncomment "OUTPUT_READABLE_REALACCEL" if you want to see acceleration
-// components with gravity removed. This acceleration reference frame is
-// not compensated for orientation, so +X is always +X according to the
-// sensor, just without the effects of gravity. If you want acceleration
-// compensated for orientation, us OUTPUT_READABLE_WORLDACCEL instead.
-//#define OUTPUT_READABLE_REALACCEL
-
-// uncomment "OUTPUT_READABLE_WORLDACCEL" if you want to see acceleration
-// components with gravity removed and adjusted for the world frame of
-// reference (yaw is relative to initial orientation, since no magnetometer
-// is present in this case). Could be quite handy in some cases.
-//#define OUTPUT_READABLE_WORLDACCEL
-
-// uncomment "OUTPUT_TEAPOT" if you want output that matches the
-// format used for the InvenSense teapot demo
-//#define OUTPUT_TEAPOT
-
-
-
-//#define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
-//#define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
-bool blinkState = false;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -2983,28 +2910,6 @@ VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measur
 VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float euler[3];         // [psi, theta, phi]    Euler angle container
-//float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-
-// packet structure for InvenSense teapot demo
-uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
-
-
-
-// ================================================================
-// ===               INTERRUPT DETECTION ROUTINE                ===
-// ================================================================
-
-volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
-void dmpDataReady() 
-{
-    mpuInterrupt = true;
-}
-
-
-
-// ================================================================
-// ===                      INITIAL SETUP                       ===
-// ================================================================
 
 void MPU6050Setup() 
 {
@@ -3031,30 +2936,28 @@ void MPU6050Setup()
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
+    // these seem to work fine for every MPU6050 I have tried...
     mpu.setXGyroOffset(220);
     mpu.setYGyroOffset(76);
     mpu.setZGyroOffset(-85);
-    mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+    mpu.setZAccelOffset(1788); // 1688 factory default
 
     // make sure it worked (returns 0 if so)
-    if (devStatus == 0) {
+    if(devStatus == 0) 
+    {
         // Calibration Time: generate offsets and calibrate our MPU6050
         mpu.CalibrateAccel(6);
         mpu.CalibrateGyro(6);
         mpu.PrintActiveOffsets();
+
         // turn on the DMP, now that it's ready
         Serial.println(F("Enabling DMP..."));
         mpu.setDMPEnabled(true);
 
-        // enable Arduino interrupt detection
-        Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
-        //Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
-        Serial.println(F(")..."));
-        //attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
         mpuIntStatus = mpu.getIntStatus();
 
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
-        Serial.println(F("DMP ready! Waiting for first interrupt..."));
+        Serial.println(F("DMP ready!"));
         dmpReady = true;
 
         // get expected DMP packet size for later comparison
@@ -3072,102 +2975,20 @@ void MPU6050Setup()
     }
 }
 
-
-
-// ================================================================
-// ===                    MAIN PROGRAM LOOP                     ===
-// ================================================================
-
 void MPU6050Loop() 
 {
     // if programming failed, don't try to do anything
     if (!dmpReady) return;
+
     // read a packet from FIFO
-    if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) { // Get the Latest packet 
-        #ifdef OUTPUT_READABLE_QUATERNION
-            // display quaternion values in easy matrix form: w x y z
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            Serial.print("quat\t");
-            Serial.print(q.w);
-            Serial.print("\t");
-            Serial.print(q.x);
-            Serial.print("\t");
-            Serial.print(q.y);
-            Serial.print("\t");
-            Serial.println(q.z);
-        #endif
-
-        #ifdef OUTPUT_READABLE_EULER
-            // display Euler angles in degrees
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetEuler(euler, &q);
-            Serial.print("euler\t");
-            Serial.print(euler[0] * 180/M_PI);
-            Serial.print("\t");
-            Serial.print(euler[1] * 180/M_PI);
-            Serial.print("\t");
-            Serial.println(euler[2] * 180/M_PI);
-        #endif
-
-        #ifdef OUTPUT_READABLE_YAWPITCHROLL
-            // display Euler angles in degrees
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetGravity(&gravity, &q);
-            mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-            //Serial.print("ypr\t");
-            //Serial.print(ypr[0] * 180/M_PI);
-            //Serial.print("\t");
-            //Serial.print(ypr[1] * 180/M_PI);
-            //Serial.print("\t");
-            //Serial.println(ypr[2] * 180/M_PI);
-        #endif
-
-        #ifdef OUTPUT_READABLE_REALACCEL
-            // display real acceleration, adjusted to remove gravity
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetAccel(&aa, fifoBuffer);
-            mpu.dmpGetGravity(&gravity, &q);
-            mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-            Serial.print("areal\t");
-            Serial.print(aaReal.x);
-            Serial.print("\t");
-            Serial.print(aaReal.y);
-            Serial.print("\t");
-            Serial.println(aaReal.z);
-        #endif
-
-        #ifdef OUTPUT_READABLE_WORLDACCEL
-            // display initial world-frame acceleration, adjusted to remove gravity
-            // and rotated based on known orientation from quaternion
-            mpu.dmpGetQuaternion(&q, fifoBuffer);
-            mpu.dmpGetAccel(&aa, fifoBuffer);
-            mpu.dmpGetGravity(&gravity, &q);
-            mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-            mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
-            Serial.print("aworld\t");
-            Serial.print(aaWorld.x);
-            Serial.print("\t");
-            Serial.print(aaWorld.y);
-            Serial.print("\t");
-            Serial.println(aaWorld.z);
-        #endif
-    
-        #ifdef OUTPUT_TEAPOT
-            // display quaternion values in InvenSense Teapot demo format:
-            teapotPacket[2] = fifoBuffer[0];
-            teapotPacket[3] = fifoBuffer[1];
-            teapotPacket[4] = fifoBuffer[4];
-            teapotPacket[5] = fifoBuffer[5];
-            teapotPacket[6] = fifoBuffer[8];
-            teapotPacket[7] = fifoBuffer[9];
-            teapotPacket[8] = fifoBuffer[12];
-            teapotPacket[9] = fifoBuffer[13];
-            Serial.write(teapotPacket, 14);
-            teapotPacket[11]++; // packetCount, loops at 0xFF on purpose
-        #endif
-
-        // blink LED to indicate activity
-        //blinkState = !blinkState;
-        //digitalWrite(LED_PIN, blinkState);
+    if(mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) 
+    { 
+      // Get the Latest packet 
+      #ifdef OUTPUT_READABLE_YAWPITCHROLL
+          // Euler angles in degrees
+          mpu.dmpGetQuaternion(&q, fifoBuffer);
+          mpu.dmpGetGravity(&gravity, &q);
+          mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+      #endif
     }
 }
