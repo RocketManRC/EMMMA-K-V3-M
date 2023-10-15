@@ -748,6 +748,11 @@ void changeOctave(int value)
   octave = value - 64; 
 }
 
+void changeMidiChannel(int value)
+{
+  midiChannel = value; 
+}
+
 int wirelessSend(uint8_t *incomingData, int len)
 {
   if(useBluetooth)
@@ -1040,7 +1045,11 @@ void handleChangeRequest(uint8_t type, uint8_t data1, uint8_t data2)
   }
   else if(type == 176 && data1 == 71) // is this control change #71?
   {
-    changeOctave(data2); // If so play change the octaveo
+    changeOctave(data2); // If so play change the octave
+  }
+  else if(type == 176 && data1 == 72) // is this control change #7?
+  {
+    changeMidiChannel(data2); // If so play change the midi channel
   }
 }
 
@@ -1290,7 +1299,7 @@ void setup()
   display.setCursor(8,15);             
   display.println(F(" EMMMA-K"));
   display.setCursor(11,37);             
-  display.println(F(" v3.2.0"));
+  display.println(F(" v3.2.1"));
 
   display.display();
 
@@ -2354,6 +2363,7 @@ void processPitchBend()
 {
   static bool offsetCaptured = false;
   static double pitchOffset = 0.0;
+  static double lastBendxWithExpo = 0.0;
 
   double pitch;
 
@@ -2387,13 +2397,20 @@ void processPitchBend()
   double a3 = 1.0 / exp(a2);         
   double bendxWithExpo = bendX * exp(fabs(a2 * bendX)) * a3;     
   
-  pitchBend(bendxWithExpo);  
+  //if(bendxWithExpo != lastBendxWithExpo)
+  if(true)
+  {
+    lastBendxWithExpo = bendxWithExpo;
+
+    pitchBend(bendxWithExpo);  
+  }
 }
 
 void processModwheel()
 {
   static bool offsetCaptured = false;
   static double rollOffset = 0.0;
+  static uint8_t lastMod = 63;
 
   double roll = ypr[1] * 180/M_PI;  // ...and roll
 
@@ -2425,7 +2442,14 @@ void processModwheel()
   if(mod > 127)
     mod = 127;
 
-  modwheel(mod);
+  // only send the modwheel data if it has changed
+  //if(mod != lastMod)
+  if(true)
+  {
+    lastMod = mod;
+
+    modwheel(mod);
+  }
 }
 
 void loop() 
